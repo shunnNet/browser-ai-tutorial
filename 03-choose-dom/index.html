@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    .highlight {
+      background-color: yellow;
+    }
+  </style>
+</head>
+
+<body>
+  <form id="chat">
+    <textarea id="input" required></textarea>
+    <button type="submit">Ask</button>
+  </form>
+
+  <div>
+    <button data-ai-id="login-button"
+      data-ai-description="The button, when clicked, can open a login popup.">Login</button>
+
+    <button data-ai-id="unsubscribe-button"
+      data-ai-description="Clicking it will terminate users subscription of browser-ai.">Unsubscribe</button>
+  </div>
+  <hr>
+  <section data-ai-id="usage-doc"
+    data-ai-description="A section describe how to install browser-ai in user's project, a good infomation to learn browser-ai">
+    Lorem
+    ipsum dolor sit amet consectetur adipisicing elit. Placeat, laboriosam atque esse asperiores animi facere nihil
+    amet minus vel corrupti, aliquam voluptates alias delectus est sint maiores saepe quasi iure.</section>
+
+  <script>
+    const my_openai_key = '<Your OpenAI API Key>'
+    const input = document.getElementById("input");
+    const form = document.getElementById("chat")
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      const userMessage = input.value
+      form.reset()
+
+      const eles = [...document.querySelectorAll(`[data-ai-id]`)]
+      const elementPrompt = eles.map(ele => {
+        return `""Element: ${ele.dataset.aiId}""
+Id: ${ele.dataset.aiId}
+Description: ${ele.dataset.aiDescription}`
+      }).join("\n\n")
+
+      const prompt = `Reading the content in "Content" section, and answer the question in "Question" section with strictly follow the instruction in "Format" section.
+
+"""Content"""
+user: ${userMessage}
+
+"""Question"""
+Which element might customers be interested in?
+
+"""Format"""
+You must answer with one of the following Element Id with no other words. If you cannot determine, just say '__no__'.
+
+${elementPrompt}
+
+"""Answer"""
+
+`
+      console.log(prompt);
+
+      const messages = [
+        { role: "user", content: prompt },
+      ]
+      const aiResponse = await chatCompletion(messages)
+      console.log("id: ", aiResponse);
+
+      const target = document.querySelector(`[data-ai-id="${aiResponse}"]`)
+      eles.forEach(ele => ele.classList.remove("highlight"))
+
+      if (target) {
+        target.classList.add("highlight")
+      }
+    }
+
+    const chatCompletion = async (messages, temperature = 0) => {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + my_openai_key,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "gpt-3.5-turbo",
+          temperature: temperature,
+          messages: messages
+        })
+      })
+        .then(response => response.json())
+
+      return response.choices[0].message.content
+    }
+
+    form.addEventListener("submit", handleSubmit);
+
+    // const conversation = document.getElementById("conversation")
+    // const renderMessage = (role, message) => {
+    //   conversation.innerHTML += `<div>${role}: ${message}</div>`
+    // }
+
+  </script>
+</body>
+
+</html>
