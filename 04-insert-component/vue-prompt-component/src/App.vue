@@ -40,7 +40,7 @@ Answer in markdown format. I will provide you some syntax and its usage, you may
 
 example: 
 user: I want to buy a product
-you: You can check the product list here: <slot slot-name="recommend-products"></slot>
+you: ...part of your answer : <slot slot-name="recommend-products"></slot> ...part of your answer...
 
 ${availableComponentsPrompt}
 `,
